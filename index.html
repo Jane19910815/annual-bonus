@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年終獎金反推計算機 Pro | 2026 Edition</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #06b6d4; /* Cyan 500 */
+            --accent-glow: rgba(6, 182, 212, 0.3);
+            --danger: #ef4444;
+            --success: #10b981;
+            --border-radius: 12px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: 0 0 20px var(--accent-glow), 0 10px 40px rgba(0,0,0,0.5);
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Tech decorative line */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-weight: 300;
+            letter-spacing: 1px;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent), #0891b2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result-area {
+            margin-top: 2rem;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .result-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--text-muted);
+        }
+
+        .result-card.taxed {
+            border-left-color: var(--danger);
+        }
+
+        .result-card.untaxed {
+            border-left-color: var(--success);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .badge-taxed { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .badge-untaxed { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .data-value {
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+        }
+
+        .gross-value {
+            font-size: 1.4rem;
+            color: var(--text-main);
+            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+
+        .note {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 1rem;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Currency symbol styling */
+        .currency { color: var(--text-muted); margin-right: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Bonus Calculator <span style="font-size:0.5em; vertical-align: middle; opacity: 0.7;">v2026</span></h1>
+    
+    <div class="input-group">
+        <label for="netAmount">入帳金額 (實領金額)</label>
+        <input type="number" id="netAmount" placeholder="例如：95000" inputmode="numeric">
+    </div>
+
+    <div class="input-group">
+        <label for="monthlySalary">投保薪資 (選填)</label>
+        <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 6px;">若未填寫，將忽略二代健保(2.11%)的計算</div>
+        <input type="number" id="monthlySalary" placeholder="例如：45800">
+    </div>
+
+    <button class="btn" onclick="calculateReverse()">分析原始金額</button>
+
+    <div id="resultArea" class="result-area">
+        </div>
+    
+    <div class="note">
+        依據 2026 年(115年度)稅制標準：<br>
+        預扣所得稅門檻 $90,501 (5%)<br>
+        二代健保門檻：投保薪資 4 倍 (2.11%)
+    </div>
+</div>
+
+<script>
+    function formatMoney(num) {
+        return num.toLocaleString('zh-TW', { maximumFractionDigits: 0 });
+    }
+
+    function calculateReverse() {
+        const netInput = document.getElementById('netAmount').value;
+        const salaryInput = document.getElementById('monthlySalary').value;
+        
+        if (!netInput) return;
+
+        const net = parseFloat(netInput);
+        const salary = salaryInput ? parseFloat(salaryInput) : 0;
+        const resultArea = document.getElementById('resultArea');
+        
+        // 2026 Thresholds
+        const TAX_THRESHOLD = 90501;
+        const TAX_RATE = 0.05;
+        const HEALTH_RATE = 0.0211;
+        // Health threshold is 4 * Salary. If salary not provided, threshold is Infinity (no health tax)
+        const HEALTH_THRESHOLD = salary > 0 ? salary * 4 : Infinity;
+
+        let scenarios = [];
+
+        // --- Logic: Reverse Engineer ---
+        
+        // Scenario A: No Tax, No Health
+        // Assumption: Gross < TAX_THRESHOLD AND Gross <= HEALTH_THRESHOLD
+        const grossA = net;
+        if (grossA < TAX_THRESHOLD && grossA <= HEALTH_THRESHOLD) {
+            scenarios.push({
+                type: 'untaxed',
+                gross: grossA,
+                tax: 0,
+                health: 0,
+                desc: '未達扣稅門檻'
+            });
+        }
+
+        // Scenario B: Tax Only (5%), No Health
+        // Assumption: Gross >= TAX_THRESHOLD AND Gross <= HEALTH_THRESHOLD
+        // Formula: Net = Gross * (1 - 0.05) => Gross = Net / 0.95
+        const grossB = net / (1 - TAX_RATE);
+        // Check validity (allow small rounding error 1 dollar)
+        if (grossB >= TAX_THRESHOLD - 1 && grossB <= HEALTH_THRESHOLD + 1) {
+            scenarios.push({
+                type: 'taxed',
+                gross: Math.round(grossB),
+                tax: Math.round(grossB * TAX_RATE),
+                health: 0,
+                desc: '僅扣除 5% 所得稅'
+            });
+        }
+
+        // Scenario C: Tax (5%) + Health (2.11% on excess)
+        // Assumption: Gross >= TAX_THRESHOLD AND Gross > HEALTH_THRESHOLD
+        // Formula: Net = Gross - (Gross * 0.05) - ((Gross - HealthThreshold) * 0.0211)
+        // Net = Gross(0.95) - 0.0211*Gross + 0.0211*HealthThreshold
+        // Net = Gross(0.9289) + HealthThreshold * 0.0211
+        // Gross = (Net - HealthThreshold * 0.0211) / 0.9289
+        if (salary > 0) {
+            const grossC = (net - (HEALTH_THRESHOLD * HEALTH_RATE)) / (1 - TAX_RATE - HEALTH_RATE);
+            if (grossC >= TAX_THRESHOLD - 1 && grossC > HEALTH_THRESHOLD - 1) {
+                scenarios.push({
+                    type: 'taxed',
+                    gross: Math.round(grossC),
+                    tax: Math.round(grossC * TAX_RATE),
+                    health: Math.round((grossC - HEALTH_THRESHOLD) * HEALTH_RATE),
+                    desc: '扣除所得稅 + 二代健保'
+                });
+            }
+        }
+
+        // Scenario D: No Tax, But Health (Rare, only if 4xSalary < 90501 and Bonus falls in between)
+        // Formula: Net = Gross - (Gross - HealthThreshold)*0.0211
+        if (salary > 0) {
+             const grossD = (net - (HEALTH_THRESHOLD * HEALTH_RATE)) / (1 - HEALTH_RATE);
+             if (grossD < TAX_THRESHOLD && grossD > HEALTH_THRESHOLD) {
+                scenarios.push({
+                    type: 'taxed',
+                    gross: Math.round(grossD),
+                    tax: 0,
+                    health: Math.round((grossD - HEALTH_THRESHOLD) * HEALTH_RATE),
+                    desc: '僅扣除二代健保 (罕見情況)'
+                });
+             }
+        }
+
+        // Render Results
+        resultArea.style.display = 'block';
+        resultArea.innerHTML = '';
+
+        if (scenarios.length === 0) {
+            // Edge case: Maybe user entered a Net that is mathematically impossible under standard rules (e.g. in the "dead zone")
+            // Or simple calculation fallback
+            resultArea.innerHTML = `<div style="text-align:center; color: var(--danger);">此金額無法精確反推，可能包含其他扣款或非標準計算。</div>`;
+        } else {
+            // Sort: Untaxed first (usually what people hope for), then Taxed
+            scenarios.sort((a, b) => (a.type === 'untaxed' ? -1 : 1));
+
+            scenarios.forEach(s => {
+                const isTaxed = s.tax > 0 || s.health > 0;
+                const badgeClass = isTaxed ? 'badge-taxed' : 'badge-untaxed';
+                const badgeText = isTaxed ? '推測有被扣稅' : '推測全額實領';
+                const borderColor = isTaxed ? 'taxed' : 'untaxed';
+
+                const html = `
+                <div class="result-card ${borderColor}">
+                    <div class="result-header">
+                        <span class="badge ${badgeClass}">${badgeText}</span>
+                        <span style="font-size:0.85rem; opacity:0.8;">${s.desc}</span>
+                    </div>
+                    <div class="data-row">
+                        <span>原始獎金 (Gross)</span>
+                        <span class="data-value gross-value"><span class="currency">$</span>${formatMoney(s.gross)}</span>
+                    </div>
+                    <div class="data-row" style="color: ${s.tax > 0 ? '#ef4444' : 'inherit'}; opacity: ${s.tax > 0 ? 1 : 0.5}">
+                        <span>預扣所得稅 (5%)</span>
+                        <span class="data-value">-${formatMoney(s.tax)}</span>
+                    </div>
+                     <div class="data-row" style="color: ${s.health > 0 ? '#ef4444' : 'inherit'}; opacity: ${s.health > 0 ? 1 : 0.5}">
+                        <span>二代健保 (2.11%)</span>
+                        <span class="data-value">-${formatMoney(s.health)}</span>
+                    </div>
+                </div>
+                `;
+                resultArea.innerHTML += html;
+            });
+            
+            if (scenarios.length > 1) {
+                resultArea.innerHTML += `<div style="text-align:center; color: var(--accent); font-size: 0.9rem; margin-top:10px;">⚠️ 偵測到多種可能性，請核對您的投保薪資</div>`;
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
